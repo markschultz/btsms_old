@@ -16,10 +16,12 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            var address = "04FE3167133D";
-            BluetoothAddress addr = BluetoothAddress.Parse(address);
+            var address_m = "04FE3167133D";
+            var address_r = "B0C4E7F92CCA";
+            BluetoothAddress addr = BluetoothAddress.Parse(address_m);
             var endpoint = new BluetoothEndPoint(addr, BluetoothService.MessageAccessProfile, 16);
             var bdi = new BluetoothDeviceInfo(addr);
+            //var records = bdi.GetServiceRecords(BluetoothService.MessageAccessProfile);
             var records = bdi.GetServiceRecords(BluetoothService.MessageAccessProfile);
             foreach (ServiceRecord record in records)
             {
@@ -30,9 +32,32 @@ namespace ConsoleApplication1
             var cli = new BluetoothClient();
             cli.Encrypt = true;
             cli.Connect(endpoint);
+            Console.WriteLine("Connected: " + cli.Connected);
             var session = new ObexClientSession(cli.GetStream(), 65535);
-            //session.Connect(ObexConstant.Target.FolderBrowsing);
-
+            try
+            {
+                //session.Connect(ObexConstant.Target.FolderBrowsing);
+                //session.Connect();
+                var outp = ObexConstant.Target.FolderBrowsing;
+                byte[] masUUID = { 0xBB, 0x58, 0x2B, 0x40, 0x42, 0x0C, 0x11, 0xDB, 0xB0, 0xDE, 0x08,
+                                 0x00, 0x20, 0x0C, 0x9A, 0x66 };
+                session.Connect(masUUID);
+            }
+            catch (ObexResponseException obexRspEx)
+            {
+                if (obexRspEx.ResponseCode == Brecham.Obex.Pdus.ObexResponseCode.PeerUnsupportedService)
+                {
+                    Console.WriteLine("The OBEX Server does not support the requested Target service/application.");
+                }
+                else
+                {
+                    Console.WriteLine("The OBEX Server rejected our connection: " + obexRspEx.ResponseCode);
+                    if (obexRspEx.Description != null)
+                    {
+                        Console.WriteLine("    Reason: " + obexRspEx.Description);
+                    }
+                }
+            } 
 
             Console.ReadLine();
         }
