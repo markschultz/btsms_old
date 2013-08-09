@@ -21,7 +21,6 @@ namespace ConsoleApplication1
             BluetoothAddress addr = BluetoothAddress.Parse(address_m);
             var endpoint = new BluetoothEndPoint(addr, BluetoothService.MessageAccessProfile, 16);
             var bdi = new BluetoothDeviceInfo(addr);
-            //var records = bdi.GetServiceRecords(BluetoothService.MessageAccessProfile);
             var records = bdi.GetServiceRecords(BluetoothService.MessageAccessProfile);
             foreach (ServiceRecord record in records)
             {
@@ -32,7 +31,7 @@ namespace ConsoleApplication1
             var cli = new BluetoothClient();
             cli.Encrypt = true;
             cli.Connect(endpoint);
-            Console.WriteLine("Connected: " + cli.Connected);
+            Console.WriteLine("Connected: " + cli.Connected + " Port: " + cli.RemoteEndPoint.Port);
             var session = new ObexClientSession(cli.GetStream(), 65535);
             try
             {
@@ -41,7 +40,10 @@ namespace ConsoleApplication1
                 var outp = ObexConstant.Target.FolderBrowsing;
                 byte[] masUUID = { 0xBB, 0x58, 0x2B, 0x40, 0x42, 0x0C, 0x11, 0xDB, 0xB0, 0xDE, 0x08,
                                  0x00, 0x20, 0x0C, 0x9A, 0x66 };
+                byte[] mnsUUID = { 0xBB, 0x58, 0x2B, 0x41, 0x42, 0x0C, 0x11, 0xDB, 0xB0, 0xDE, 0x08,
+                                 0x00, 0x20, 0x0C, 0x9A, 0x66 };
                 session.Connect(masUUID);
+                Console.WriteLine("Session Connected: " + session.ConnectionId);
             }
             catch (ObexResponseException obexRspEx)
             {
