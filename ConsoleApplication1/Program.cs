@@ -44,6 +44,25 @@ namespace ConsoleApplication1
                                  0x00, 0x20, 0x0C, 0x9A, 0x66 };
                 session.Connect(masUUID);
                 Console.WriteLine("Session Connected: " + session.ConnectionId);
+                Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
+                session.SetPath("telecom");
+                Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
+                session.SetPath("msg");
+                Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
+                session.SetPath("inbox");
+                Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
+                session.SetPathUp();
+                session.SetPath("sent");
+                Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
+                var headers = new ObexHeaderCollection();
+                var get = session.Get("", "x-bt/MAP-msg-listing");
+                if (get.ResponseHeaders.Contains(ObexHeaderId.AppParameters))
+                {
+                    Console.WriteLine(System.Text.ASCIIEncoding.ASCII.GetString(get.ResponseHeaders.GetByteSeq(ObexHeaderId.AppParameters)));
+                    var app = get.ResponseHeaders.GetByteSeq(ObexHeaderId.AppParameters);
+                }
+                
+                //var sms1 = session.Get(null, "x-bt/message");
             }
             catch (ObexResponseException obexRspEx)
             {
