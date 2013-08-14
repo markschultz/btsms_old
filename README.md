@@ -1,4 +1,4 @@
 btsms
 =====
 
-bluetooth android sms client
+PC bluetooth MAP client
