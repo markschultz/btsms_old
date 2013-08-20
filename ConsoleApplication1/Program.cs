@@ -50,6 +50,12 @@ namespace ConsoleApplication1
                 Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
                 session.SetPath("inbox");
                 var get2 = session.Get("9905", "x-bt/message");
+                var headers = new ObexHeaderCollection();
+                headers.AddType("x-bt/MAP-msg-listing");
+                headers.Add(ObexHeaderId.Name, "");
+                byte[] appParams = { 0x01, 0x02, 0x00, 0x02 };
+                headers.Add(ObexHeaderId.AppParameters, appParams);
+                headers.Dump(Console.Out);
                 get2.ResponseHeaders.Dump(Console.Out);
                 System.IO.FileStream fs2 = new System.IO.FileStream("D:\\single_test.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write);
                 byte[] ba = new byte[1024 * 4];
@@ -57,7 +63,8 @@ namespace ConsoleApplication1
                 fs2.Write(ba, 0, ba.Length);
                 fs2.Close();
                 get2.Close();
-                var get = session.Get("", "x-bt/MAP-msg-listing");
+                var get = session.Get(headers);
+                //var get = session.Get("", "x-bt/MAP-msg-listing");
                 get.ResponseHeaders.Dump(Console.Out); //diagnostic header print
                 System.IO.FileStream fs = new System.IO.FileStream("D:\\inbox_test.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write);
                 get.Read(ba, 0, ba.Length);
@@ -80,7 +87,7 @@ namespace ConsoleApplication1
                         Console.WriteLine("    Reason: " + obexRspEx.Description);
                     }
                 }
-            } 
+            }
 
             Console.ReadLine();
         }
