@@ -53,7 +53,7 @@ namespace ConsoleApplication1
                 var headers = new ObexHeaderCollection();
                 headers.AddType("x-bt/MAP-msg-listing");
                 headers.Add(ObexHeaderId.Name, "");
-                byte[] appParams = { 0x01, 0x02, 0x00, 0x02 };
+                byte[] appParams = { 0x01, 0x02, 0x00, 0x02, 0x10, 0x04, 0x00, 0x00, 0x96, 0x8f };
                 headers.Add(ObexHeaderId.AppParameters, appParams);
                 headers.Dump(Console.Out);
                 get2.ResponseHeaders.Dump(Console.Out);
@@ -88,7 +88,7 @@ namespace ConsoleApplication1
                     }
                 }
             }
-
+            Console.WriteLine("\nDONE.");
             Console.ReadLine();
         }
     }
