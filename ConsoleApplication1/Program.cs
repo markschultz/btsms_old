@@ -59,16 +59,16 @@ namespace ConsoleApplication1
                 get2.ResponseHeaders.Dump(Console.Out);
                 System.IO.FileStream fs2 = new System.IO.FileStream("D:\\single_test.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write);
                 byte[] ba = new byte[1024 * 4];
-                get2.Read(ba, 0, ba.Length);
-                fs2.Write(ba, 0, ba.Length);
+                var bytesRead = get2.Read(ba, 0, ba.Length);
+                fs2.Write(ba, 0, bytesRead);
                 fs2.Close();
                 get2.Close();
                 var get = session.Get(headers);
                 //var get = session.Get("", "x-bt/MAP-msg-listing");
                 get.ResponseHeaders.Dump(Console.Out); //diagnostic header print
                 System.IO.FileStream fs = new System.IO.FileStream("D:\\inbox_test.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write);
-                get.Read(ba, 0, ba.Length);
-                fs.Write(ba, 0, ba.Length);
+                bytesRead = get.Read(ba, 0, ba.Length);
+                fs.Write(ba, 0, bytesRead);
                 fs.Close();
                 var app = get.ResponseHeaders.GetByteSeq(ObexHeaderId.AppParameters);
 
