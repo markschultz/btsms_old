@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<xs:schema xmlns="http://tempuri.org/msg" elementFormDefault="qualified" targetNamespace="http://tempuri.org/msg" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="MAP-msg-listing">
+    <xs:complexType>
+      <xs:sequence minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="msg" />
+      </xs:sequence>
+      <xs:attribute fixed="1.0" name="version" type="xs:string" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="msg">
+    <xs:complexType>
+      <xs:attribute name="handle" type="xs:string" use="required" />
+      <xs:attribute name="subject" type="xs:string" use="required" />
+      <xs:attribute name="datetime" type="xs:string" use="required" />
+      <xs:attribute name="sender_name" type="xs:string" />
+      <xs:attribute name="sender_addressing" type="xs:string" />
+      <xs:attribute name="replyto_addressing" type="xs:string" />
+      <xs:attribute name="recipient_name" type="xs:string" />
+      <xs:attribute name="recipient_addressing" type="xs:string" use="required" />
+      <xs:attribute name="type" type="xs:string" use="required" />
+      <xs:attribute name="size" type="xs:string" use="required" />
+      <xs:attribute default="no" name="text">
+        <xs:simpleType>
+          <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="yes" />
+            <xs:enumeration value="no" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="reception_status" type="xs:string" use="required" />
+      <xs:attribute name="attachment_size" type="xs:string" use="required" />
+      <xs:attribute default="no" name="priority">
+        <xs:simpleType>
+          <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="yes" />
+            <xs:enumeration value="no" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute default="no" name="read">
+        <xs:simpleType>
+          <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="yes" />
+            <xs:enumeration value="no" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute default="no" name="sent">
+        <xs:simpleType>
+          <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="yes" />
+            <xs:enumeration value="no" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute default="no" name="protected">
+        <xs:simpleType>
+          <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="yes" />
+            <xs:enumeration value="no" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

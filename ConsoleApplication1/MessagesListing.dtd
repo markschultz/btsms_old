@@ -1,0 +1,25 @@
+<!DTD for the MAP Messages-Listing Object-->
+<!DOCTYPE MAP-msg-listing [
+<!ELEMENT MAP-msg-listing ( msg )* >
+<!ATTLIST MAP-msg-listing version CDATA #FIXED "1.0">
+<!ELEMENT msg EMPTY>
+<!ATTLIST msg
+handle CDATA #REQUIRED
+subject CDATA #REQUIRED
+datetime CDATA #REQUIRED
+sender_name CDATA #IMPLIED
+sender_addressing CDATA #IMPLIED
+replyto_addressing CDATA #IMPLIED
+recipient_name CDATA #IMPLIED
+recipient_addressing CDATA #REQUIRED
+type CDATA #REQUIRED
+size CDATA #REQUIRED
+text (yes|no) "no"
+reception_status CDATA #REQUIRED
+attachment_size CDATA #REQUIRED
+priority (yes|no) "no"
+read (yes|no) "no"
+sent (yes|no) "no"
+protected (yes|no) "no"
+>
+]>
