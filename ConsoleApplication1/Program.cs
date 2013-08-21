@@ -33,14 +33,12 @@ namespace ConsoleApplication1
             cli.Connect(endpoint);
             Console.WriteLine("Connected: " + cli.Connected + " Port: " + cli.RemoteEndPoint.Port);
             var session = new ObexClientSession(cli.GetStream(), 65535);
+            byte[] masUUID = { 0xBB, 0x58, 0x2B, 0x40, 0x42, 0x0C, 0x11, 0xDB, 0xB0, 0xDE, 0x08,
+                             0x00, 0x20, 0x0C, 0x9A, 0x66 };
+            byte[] mnsUUID = { 0xBB, 0x58, 0x2B, 0x41, 0x42, 0x0C, 0x11, 0xDB, 0xB0, 0xDE, 0x08,
+                             0x00, 0x20, 0x0C, 0x9A, 0x66 };
             try
             {
-                //session.Connect(ObexConstant.Target.FolderBrowsing);
-                //session.Connect();
-                byte[] masUUID = { 0xBB, 0x58, 0x2B, 0x40, 0x42, 0x0C, 0x11, 0xDB, 0xB0, 0xDE, 0x08,
-                                 0x00, 0x20, 0x0C, 0x9A, 0x66 };
-                byte[] mnsUUID = { 0xBB, 0x58, 0x2B, 0x41, 0x42, 0x0C, 0x11, 0xDB, 0xB0, 0xDE, 0x08,
-                                 0x00, 0x20, 0x0C, 0x9A, 0x66 };
                 session.Connect(masUUID);
                 Console.WriteLine("Session Connected: " + session.ConnectionId);
                 Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
@@ -49,28 +47,10 @@ namespace ConsoleApplication1
                 session.SetPath("msg");
                 Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
                 session.SetPath("inbox");
-                var get2 = session.Get("9905", "x-bt/message");
-                var headers = new ObexHeaderCollection();
-                headers.AddType("x-bt/MAP-msg-listing");
-                headers.Add(ObexHeaderId.Name, "");
-                byte[] appParams = { 0x01, 0x02, 0x00, 0x02, 0x10, 0x04, 0x00, 0x00, 0x96, 0x8f };
-                headers.Add(ObexHeaderId.AppParameters, appParams);
-                headers.Dump(Console.Out);
-                get2.ResponseHeaders.Dump(Console.Out);
-                System.IO.FileStream fs2 = new System.IO.FileStream("D:\\single_test.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write);
                 byte[] ba = new byte[1024 * 4];
-                var bytesRead = get2.Read(ba, 0, ba.Length);
-                fs2.Write(ba, 0, bytesRead);
-                fs2.Close();
-                get2.Close();
-                var get = session.Get(headers);
-                //var get = session.Get("", "x-bt/MAP-msg-listing");
-                get.ResponseHeaders.Dump(Console.Out); //diagnostic header print
-                System.IO.FileStream fs = new System.IO.FileStream("D:\\inbox_test.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write);
-                bytesRead = get.Read(ba, 0, ba.Length);
-                fs.Write(ba, 0, bytesRead);
-                fs.Close();
-                var app = get.ResponseHeaders.GetByteSeq(ObexHeaderId.AppParameters);
+                int bytesRead;
+                GetSingle(session, ba);
+                GetListing(session, ba);
 
             }
             catch (ObexResponseException obexRspEx)
@@ -90,6 +70,35 @@ namespace ConsoleApplication1
             }
             Console.WriteLine("\nDONE.");
             Console.ReadLine();
+        }
+
+        private static void GetListing(ObexClientSession session, byte[] ba)
+        {
+            int bytesRead;
+            var headers = new ObexHeaderCollection();
+            headers.AddType("x-bt/MAP-msg-listing");
+            headers.Add(ObexHeaderId.Name, "");
+            byte[] appParams = { 0x01, 0x02, 0x00, 0x02, 0x10, 0x04, 0x00, 0x00, 0x96, 0x8f };
+            headers.Add(ObexHeaderId.AppParameters, appParams);
+            headers.Dump(Console.Out);
+            var get = session.Get(headers);
+            get.ResponseHeaders.Dump(Console.Out);
+            System.IO.FileStream fs = new System.IO.FileStream("D:\\inbox_test.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write);
+            bytesRead = get.Read(ba, 0, ba.Length);
+            fs.Write(ba, 0, bytesRead);
+            fs.Close();
+            var app = get.ResponseHeaders.GetByteSeq(ObexHeaderId.AppParameters);
+        }
+
+        private static void GetSingle(ObexClientSession session, byte[] ba)
+        {
+            var get2 = session.Get("9905", "x-bt/message");
+            get2.ResponseHeaders.Dump(Console.Out);
+            System.IO.FileStream fs2 = new System.IO.FileStream("D:\\single_test.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write);
+            var bytesRead = get2.Read(ba, 0, ba.Length);
+            fs2.Write(ba, 0, bytesRead);
+            fs2.Close();
+            get2.Close();
         }
     }
 }
