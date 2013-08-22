@@ -46,12 +46,10 @@ namespace ConsoleApplication1
                 Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
                 session.SetPath("msg");
                 Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
-                session.SetPath("inbox");
                 byte[] ba = new byte[1024 * 4];
-                int bytesRead;
-                GetSingle(session, ba);
-                GetListing(session, ba);
-
+                //GetSingle(session, ba);
+                //GetListing(session, ba);
+                SendMessage(session, ba);
             }
             catch (ObexResponseException obexRspEx)
             {
@@ -72,12 +70,31 @@ namespace ConsoleApplication1
             Console.ReadLine();
         }
 
+        private static void SendMessage(ObexClientSession session, byte[] ba)
+        {
+            int bytesRead;
+            var headers = new ObexHeaderCollection();
+            headers.AddType("x-bt/message");
+            headers.Add(ObexHeaderId.Name, "outbox");
+            byte[] appParams = { 0x14, 0x01, 0x01};
+            headers.Add(ObexHeaderId.AppParameters, appParams);
+            headers.Dump(Console.Out);
+            //UTF8Encoding utf = new UTF8Encoding();
+            //var count = utf.GetByteCount("Or Saturday:-) ");
+            var put = session.Put(headers);
+            System.IO.FileStream fs = new System.IO.FileStream("D:\\test_send.txt", System.IO.FileMode.Open, System.IO.FileAccess.Read);
+            bytesRead = fs.Read(ba, 0, ba.Length);
+            fs.Close();
+            put.Write(ba, 0, bytesRead);
+            put.Close();
+        }
+
         private static void GetListing(ObexClientSession session, byte[] ba)
         {
             int bytesRead;
             var headers = new ObexHeaderCollection();
             headers.AddType("x-bt/MAP-msg-listing");
-            headers.Add(ObexHeaderId.Name, "");
+            headers.Add(ObexHeaderId.Name, "inbox");
             byte[] appParams = { 0x01, 0x02, 0x00, 0x02, 0x10, 0x04, 0x00, 0x00, 0x96, 0x8f };
             headers.Add(ObexHeaderId.AppParameters, appParams);
             headers.Dump(Console.Out);
@@ -88,6 +105,7 @@ namespace ConsoleApplication1
             fs.Write(ba, 0, bytesRead);
             fs.Close();
             var app = get.ResponseHeaders.GetByteSeq(ObexHeaderId.AppParameters);
+            get.Close();
         }
 
         private static void GetSingle(ObexClientSession session, byte[] ba)
