@@ -49,7 +49,7 @@ namespace ConsoleApplication1
                 byte[] ba = new byte[1024 * 4];
                 //GetSingle(session, ba);
                 //GetListing(session, ba);
-                SendMessage(session, ba);
+                SendMessage(session, ba, "test test", "3124361855");
             }
             catch (ObexResponseException obexRspEx)
             {
@@ -70,22 +70,18 @@ namespace ConsoleApplication1
             Console.ReadLine();
         }
 
-        private static void SendMessage(ObexClientSession session, byte[] ba)
+        private static void SendMessage(ObexClientSession session, byte[] ba, string message, string to)
         {
-            int bytesRead;
             var headers = new ObexHeaderCollection();
             headers.AddType("x-bt/message");
             headers.Add(ObexHeaderId.Name, "outbox");
             byte[] appParams = { 0x14, 0x01, 0x01};
             headers.Add(ObexHeaderId.AppParameters, appParams);
             headers.Dump(Console.Out);
-            //UTF8Encoding utf = new UTF8Encoding();
-            //var count = utf.GetByteCount("Or Saturday:-) ");
+            UTF8Encoding utf = new UTF8Encoding();
             var put = session.Put(headers);
-            System.IO.FileStream fs = new System.IO.FileStream("D:\\test_send.txt", System.IO.FileMode.Open, System.IO.FileAccess.Read);
-            bytesRead = fs.Read(ba, 0, ba.Length);
-            fs.Close();
-            put.Write(ba, 0, bytesRead);
+            ba = utf.GetBytes(Strings.sendTemplate.Replace("%message", message).Replace("%toNumber", to));
+            put.Write(ba, 0, ba.Length);
             put.Close();
         }
 
