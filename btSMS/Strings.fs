@@ -1,0 +1,3 @@
+﻿module Strings
+
+let sendTemplate = @"BEGIN:BMSG\nVERSION:1.0\nSTATUS:READ\nTYPE:SMS_CDMA\nFOLDER:telecom/msg/outbox\nBEGIN:VCARD\nVERSION:2.1\nN:%toName\nTEL:%fromNumber\nEND:VCARD\nBEGIN:BENV\nBEGIN:VCARD\nVERSION:2.1\nN:%fromName\nTEL:%toNumber\nEND:VCARD\nBEGIN:BBODY\nCHARSET:UTF-8\nLENGTH:0\nBEGIN:MSG\n%message\nEND:MSG\nEND:BBODY\nEND:BENV\nEND:BMSG"
