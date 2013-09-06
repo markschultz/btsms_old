@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,10 +45,9 @@ namespace btSMS
                         Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
                         session.SetPath("msg");
                         Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
-                        byte[] ba = new byte[1024 * 4];
                         //GetSingle(session, ba);
                         //GetListing(session, ba);
-                        SendMessage(session, ba, "test test", "3124361855");
+                        SentTextMessage(session, Constants.sendTemplate.Replace("%message", "test test").Replace("%toNumber", "3124361855"));
                     }
                     catch (ObexResponseException obexRspEx)
                     {
@@ -70,8 +70,9 @@ namespace btSMS
             Console.ReadLine();
         }
 
-        private static void SendMessage(ObexClientSession session, byte[] ba, string message, string to)
+        private static void SentTextMessage(ObexClientSession session, string body) 
         {
+            byte[] ba = new byte[1024 * 4];
             var headers = new ObexHeaderCollection();
             headers.AddType("x-bt/message");
             headers.Add(ObexHeaderId.Name, "outbox");
@@ -79,14 +80,16 @@ namespace btSMS
             headers.Add(ObexHeaderId.AppParameters, appParams);
             headers.Dump(Console.Out);
             UTF8Encoding utf = new UTF8Encoding();
-            var put = session.Put(headers);
-            ba = utf.GetBytes(Constants.sendTemplate.Replace("%message", message).Replace("%toNumber", to));
-            put.Write(ba, 0, ba.Length);
-            put.Close();
+            using (var put = session.Put(headers))
+            {
+                ba = utf.GetBytes(body);
+                put.Write(ba, 0, ba.Length);
+            }
         }
 
-        private static void GetListing(ObexClientSession session, byte[] ba)
+        private static void GetListing(ObexClientSession session)
         {
+            byte[] ba = new byte[1024 * 4];
             int bytesRead;
             var headers = new ObexHeaderCollection();
             headers.AddType("x-bt/MAP-msg-listing");
@@ -94,25 +97,29 @@ namespace btSMS
             byte[] appParams = { 0x01, 0x02, 0x00, 0x02, 0x10, 0x04, 0x00, 0x00, 0x96, 0x8f };
             headers.Add(ObexHeaderId.AppParameters, appParams);
             headers.Dump(Console.Out);
-            var get = session.Get(headers);
-            get.ResponseHeaders.Dump(Console.Out);
-            System.IO.FileStream fs = new System.IO.FileStream("D:\\inbox_test.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write);
-            bytesRead = get.Read(ba, 0, ba.Length);
-            fs.Write(ba, 0, bytesRead);
-            fs.Close();
-            var app = get.ResponseHeaders.GetByteSeq(ObexHeaderId.AppParameters);
-            get.Close();
+            using (var get = session.Get(headers))
+            {
+                get.ResponseHeaders.Dump(Console.Out);
+                using (FileStream fs = new FileStream("D:\\inbox_test.txt", FileMode.Create, FileAccess.Write))
+                {
+                    bytesRead = get.Read(ba, 0, ba.Length);
+                    fs.Write(ba, 0, bytesRead);
+                }
+            }
         }
 
-        private static void GetSingle(ObexClientSession session, byte[] ba)
+        private static void GetSingle(ObexClientSession session)
         {
-            var get2 = session.Get("9905", "x-bt/message");
-            get2.ResponseHeaders.Dump(Console.Out);
-            System.IO.FileStream fs2 = new System.IO.FileStream("D:\\single_test.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write);
-            var bytesRead = get2.Read(ba, 0, ba.Length);
-            fs2.Write(ba, 0, bytesRead);
-            fs2.Close();
-            get2.Close();
+            byte[] ba = new byte[1024 * 4];
+            using (var get2 = session.Get("9905", "x-bt/message"))
+            {
+                get2.ResponseHeaders.Dump(Console.Out);
+                using (FileStream fs2 = new FileStream("D:\\single_test.txt", FileMode.Create, FileAccess.Write))
+                {
+                    var bytesRead = get2.Read(ba, 0, ba.Length);
+                    fs2.Write(ba, 0, bytesRead);
+                }
+            }
         }
     }
 }
