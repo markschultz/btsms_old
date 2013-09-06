@@ -45,9 +45,9 @@ namespace btSMS
                         Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
                         session.SetPath("msg");
                         Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
-                        //GetSingle(session, ba);
-                        //GetListing(session, ba);
-                        SentTextMessage(session, Constants.sendTemplate.Replace("%message", "test test").Replace("%toNumber", "3124361855"));
+                        //GetMessage(session, ba);
+                        //GetNumMessages(session, ba);
+                        PutMessage(session, Constants.sendTemplate.Replace("%message", "test test").Replace("%toNumber", "3124361855"));
                     }
                     catch (ObexResponseException obexRspEx)
                     {
@@ -70,7 +70,11 @@ namespace btSMS
             Console.ReadLine();
         }
 
-        private static void SentTextMessage(ObexClientSession session, string body) 
+        private static ObexClientSession initSession(BluetoothAddress addr)
+        {
+        }
+
+        private static void PutMessage(ObexClientSession session, string body)
         {
             byte[] ba = new byte[1024 * 4];
             var headers = new ObexHeaderCollection();
@@ -87,7 +91,7 @@ namespace btSMS
             }
         }
 
-        private static void GetListing(ObexClientSession session)
+        private static void GetNumMessages(ObexClientSession session, int numMessages)
         {
             byte[] ba = new byte[1024 * 4];
             int bytesRead;
@@ -108,7 +112,11 @@ namespace btSMS
             }
         }
 
-        private static void GetSingle(ObexClientSession session)
+        private static void GetFilteredMessages(ObexClientSession session)
+        {
+        }
+
+        private static void GetMessage(ObexClientSession session)
         {
             byte[] ba = new byte[1024 * 4];
             using (var get2 = session.Get("9905", "x-bt/message"))
@@ -120,6 +128,10 @@ namespace btSMS
                     fs2.Write(ba, 0, bytesRead);
                 }
             }
+        }
+
+        private static void SubscribeNotifications(ObexClientSession session)
+        {
         }
     }
 }
