@@ -20,61 +20,66 @@ namespace btSMS
             var address_m = "04FE3167133D";
             var address_r = "B0C4E7F92CCA";
             BluetoothAddress addr = BluetoothAddress.Parse(address_m);
-            var endpoint = new BluetoothEndPoint(addr, BluetoothService.MessageAccessProfile, 16);
             var bdi = new BluetoothDeviceInfo(addr);
-            var records = bdi.GetServiceRecords(BluetoothService.MessageAccessProfile);
+            var records = bdi.GetServiceRecords(BluetoothService.RFCommProtocol);
+            int mapPort = 0;
             foreach (ServiceRecord record in records)
             {
                 var port = ServiceRecordHelper.GetRfcommChannelNumber(record);
                 var name = record.GetPrimaryMultiLanguageStringAttributeById(UniversalAttributeId.ServiceName);
                 Console.WriteLine("Name: " + name + "; Port: " + port);
+                if (name.Contains("SMS"))
+                {
+                    mapPort = port;                    
+                }
             }
-            using (var cli = new BluetoothClient())
+            using (var connection = initConnection(addr, mapPort))
             {
-                cli.Encrypt = true;
-                cli.Connect(endpoint);
-                Console.WriteLine("Connected: " + cli.Connected + " Port: " + cli.RemoteEndPoint.Port);
-                using (var session = new ObexClientSession(cli.GetStream(), 65535))
+                using (var session = initSession(connection))
                 {
                     try
                     {
-                        session.Connect(Constants.masUUID);
                         Console.WriteLine("Session Connected: " + session.ConnectionId);
-                        Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
                         session.SetPath("telecom");
-                        Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
                         session.SetPath("msg");
                         Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
                         //GetMessage(session, ba);
                         //GetNumMessages(session, ba);
-                        PutMessage(session, Constants.sendTemplate.Replace("%message", "test test").Replace("%toNumber", "3124361855"));
+                        PushMessage(session, Constants.sendTemplate.Replace("%message", "test test").Replace("%toNumber", "3124361855"));
                     }
                     catch (ObexResponseException obexRspEx)
                     {
-                        if (obexRspEx.ResponseCode == Brecham.Obex.Pdus.ObexResponseCode.PeerUnsupportedService)
+                        Console.WriteLine("The OBEX Server error: " + obexRspEx.ResponseCode);
+                        if (obexRspEx.Description != null)
                         {
-                            Console.WriteLine("The OBEX Server does not support the requested Target service/application.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("The OBEX Server rejected our connection: " + obexRspEx.ResponseCode);
-                            if (obexRspEx.Description != null)
-                            {
-                                Console.WriteLine("    Reason: " + obexRspEx.Description);
-                            }
+                            Console.WriteLine("    Reason: " + obexRspEx.Description);
                         }
                     }
                 }
             }
+
             Console.WriteLine("\nDONE.");
             Console.ReadLine();
         }
 
-        private static ObexClientSession initSession(BluetoothAddress addr)
+        private static BluetoothClient initConnection(BluetoothAddress addr, int port)
         {
+            var endpoint = new BluetoothEndPoint(addr, BluetoothService.MessageAccessProfile, port);
+            var cli = new BluetoothClient();
+            cli.Encrypt = true;
+            cli.Connect(endpoint);
+            Console.WriteLine("Connected: " + cli.Connected + " Port: " + cli.RemoteEndPoint.Port);
+            return cli;
         }
 
-        private static void PutMessage(ObexClientSession session, string body)
+        private static ObexClientSession initSession(BluetoothClient cli)
+        {
+            var session = new ObexClientSession(cli.GetStream(), 65535);
+            session.Connect(Constants.masUUID);
+            return session;
+        }
+
+        private static void PushMessage(ObexClientSession session, string body)
         {
             byte[] ba = new byte[1024 * 4];
             var headers = new ObexHeaderCollection();
@@ -132,6 +137,17 @@ namespace btSMS
 
         private static void SubscribeNotifications(ObexClientSession session)
         {
+            byte[] ba = new byte[1024 * 4];
+            var headers = new ObexHeaderCollection();
+            headers.AddType("x-bt/MAP-NotificationRegistration");
+            byte[] appParams = { 0x0E, 0x01, 0x01 };
+            headers.Add(ObexHeaderId.AppParameters, appParams);
+            headers.Dump(Console.Out);
+            using (var put = session.Put(headers))
+            {
+                byte[] zero = {0x30};
+                put.Write(zero, 0, zero.Length);
+            }
         }
     }
 }
