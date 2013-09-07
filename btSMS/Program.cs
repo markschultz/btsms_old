@@ -30,6 +30,7 @@ namespace btSMS
                 Console.WriteLine("Name: " + name + "; Port: " + port);
                 if (name.Contains("SMS"))
                 {
+                    Console.WriteLine(record.GetAttributeById((ServiceAttributeId)0x0315).Value.ElementTypeDescriptor.ToString());
                     mapPort = port;                    
                 }
             }
@@ -45,7 +46,9 @@ namespace btSMS
                         Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
                         //GetMessage(session, ba);
                         //GetNumMessages(session, ba);
-                        PushMessage(session, Constants.sendTemplate.Replace("%message", "test test").Replace("%toNumber", "3124361855"));
+                        //PushMessage(session, Constants.sendTemplate.Replace("%message", "test test").Replace("%toNumber", "3124361855"));
+                        SubscribeNotifications(session, true);
+                        SubscribeNotifications(session, false);
                     }
                     catch (ObexResponseException obexRspEx)
                     {
@@ -81,7 +84,7 @@ namespace btSMS
 
         private static void PushMessage(ObexClientSession session, string body)
         {
-            byte[] ba = new byte[1024 * 4];
+            byte[] ba = new byte[1024 * 8];
             var headers = new ObexHeaderCollection();
             headers.AddType("x-bt/message");
             headers.Add(ObexHeaderId.Name, "outbox");
@@ -98,7 +101,7 @@ namespace btSMS
 
         private static void GetNumMessages(ObexClientSession session, int numMessages)
         {
-            byte[] ba = new byte[1024 * 4];
+            byte[] ba = new byte[1024 * 8];
             int bytesRead;
             var headers = new ObexHeaderCollection();
             headers.AddType("x-bt/MAP-msg-listing");
@@ -123,7 +126,7 @@ namespace btSMS
 
         private static void GetMessage(ObexClientSession session)
         {
-            byte[] ba = new byte[1024 * 4];
+            byte[] ba = new byte[1024 * 8];
             using (var get2 = session.Get("9905", "x-bt/message"))
             {
                 get2.ResponseHeaders.Dump(Console.Out);
@@ -135,12 +138,11 @@ namespace btSMS
             }
         }
 
-        private static void SubscribeNotifications(ObexClientSession session)
+        private static void SubscribeNotifications(ObexClientSession session, bool connect)
         {
-            byte[] ba = new byte[1024 * 4];
             var headers = new ObexHeaderCollection();
             headers.AddType("x-bt/MAP-NotificationRegistration");
-            byte[] appParams = { 0x0E, 0x01, 0x01 };
+            byte[] appParams = { 0x0E, 0x01, (connect ? (byte)0x01 : (byte)0x00) };
             headers.Add(ObexHeaderId.AppParameters, appParams);
             headers.Dump(Console.Out);
             using (var put = session.Put(headers))
