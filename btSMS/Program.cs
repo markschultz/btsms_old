@@ -44,9 +44,6 @@ namespace btSMS
                         session.SetPath("telecom");
                         session.SetPath("msg");
                         Console.WriteLine(session.GetFolderListing().AllItems.Aggregate("Current Folder Listing:\n\t", (q, a) => q + a.ToString() + "\n\t"));
-                        //GetMessage(session, ba);
-                        //GetNumMessages(session, ba);
-                        //PushMessage(session, Constants.sendTemplate.Replace("%message", "test test").Replace("%toNumber", "3124361855"));
                         SubscribeNotifications(session, true);
                         SubscribeNotifications(session, false);
                     }
